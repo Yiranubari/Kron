@@ -33,7 +33,15 @@ export function createApp(deps?: AppDependencies) {
   const pdfConverter = new PdfConverter();
   const emailRenderService = new EmailRenderService();
   const pdfRenderService = new PdfRenderService(pdfConverter);
-  const emailService = deps?.emailService ?? new EmailService(env.RESEND_API_KEY);
+  const emailService = deps?.emailService ?? new EmailService(
+    env.SMTP_HOST,
+    env.SMTP_PORT,
+    env.SMTP_ENCRYPTION,
+    env.SMTP_USER,
+    env.SMTP_PASS,
+    env.FROM_EMAIL,
+    env.FROM_NAME,
+  );
   const invoiceService = new InvoiceService(
     repository,
     aggregationService,
@@ -46,7 +54,20 @@ export function createApp(deps?: AppDependencies) {
   const webhookController = new WebhookController(invoiceService);
   const portalController = new PortalController(invoiceService);
 
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+
   app.use(createInvoiceRoutes(webhookController, portalController));
+
+  app.use((_req, res) => {
+    res.status(404).json({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Route not found',
+      },
+    });
+  });
 
   app.use(errorHandler);
 

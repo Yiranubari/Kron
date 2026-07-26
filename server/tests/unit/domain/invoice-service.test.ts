@@ -6,8 +6,8 @@ import { createSamplePayload } from '../../fixtures/sample-payload.js';
 import type { WebhookPayload } from '../../../src/modules/invoice/entities/invoice.entity.js';
 
 class MockEmailRenderer {
-  render(_payload: WebhookPayload, _portalUrl: string): string {
-    return '<html><body>Mock Email</body></html>';
+  render(_payload: WebhookPayload, _portalUrl: string): { html: string; text: string } {
+    return { html: '<html><body>Mock Email</body></html>', text: 'Mock Email' };
   }
 }
 
@@ -24,7 +24,7 @@ class MockPdfRenderer {
 }
 
 class MockEmailService {
-  async send(_to: string, _subject: string, _html: string): Promise<void> {
+  async send(_to: string, _subject: string, _html: string, _text: string): Promise<void> {
   }
 }
 
@@ -70,6 +70,7 @@ describe('InvoiceService', () => {
     const stored = repository.findById(payload.invoice.id);
     expect(stored).toBeDefined();
     expect(stored!.renderedEmail).toBeDefined();
+    expect(stored!.renderedEmailText).toBeDefined();
     expect(stored!.renderedPdf).toBeDefined();
   });
 

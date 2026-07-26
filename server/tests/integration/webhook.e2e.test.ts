@@ -13,7 +13,8 @@ class MockE2eEmailService {
 let app: Express;
 
 beforeAll(() => {
-  process.env.RESEND_API_KEY = 're_test_key_for_e2e';
+  process.env.SMTP_USER = 'test@example.com';
+  process.env.SMTP_PASS = 'test-app-password';
   app = createApp({ emailService: new MockE2eEmailService() as unknown as EmailService });
 });
 

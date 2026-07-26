@@ -27,5 +27,6 @@ export type StoredInvoice = {
   payload: WebhookPayload;
   portalData: PortalDataResponse;
   renderedEmail?: string;
+  renderedEmailText?: string;
   renderedPdf?: Buffer;
 };

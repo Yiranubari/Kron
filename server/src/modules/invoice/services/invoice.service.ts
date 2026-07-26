@@ -38,19 +38,21 @@ export class InvoiceService {
     const portalUrl = `${this.frontendUrl}/portal/${invoiceId}`;
     const pdfUrl = `/invoice/${invoiceId}/pdf`;
 
-    const emailHtml = this.emailRenderService.render(payload, portalUrl);
+    const { html: emailHtml, text: emailText } = this.emailRenderService.render(payload, portalUrl);
     const pdfBuffer = await this.pdfRenderService.render(payload);
 
     await this.emailService.send(
       payload.customer.email,
-      `Invoice from Kron — ${payload.invoice.currency} ${payload.invoice.total}`,
+      'Your Kron invoice is ready',
       emailHtml,
+      emailText,
     );
 
     const stored: StoredInvoice = {
       payload,
       portalData,
       renderedEmail: emailHtml,
+      renderedEmailText: emailText,
       renderedPdf: pdfBuffer,
     };
 

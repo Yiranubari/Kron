@@ -1,25 +1,39 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { EmailSendException } from '../exceptions/app-exceptions.js';
 
 export class EmailService {
-  private client: Resend;
+  private transporter: nodemailer.Transporter;
 
-  constructor(apiKey: string) {
-    this.client = new Resend(apiKey);
+  constructor(
+    private readonly smtpHost: string,
+    private readonly smtpPort: number,
+    private readonly smtpEncryption: string,
+    private readonly smtpUser: string,
+    private readonly smtpPass: string,
+    private readonly fromEmail: string,
+    private readonly fromName: string,
+  ) {
+    this.transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpEncryption === 'ssl',
+      auth: { user: smtpUser, pass: smtpPass },
+    });
   }
 
-  async send(to: string, subject: string, html: string): Promise<void> {
-    const { error } = await this.client.emails.send({
-      from: 'Kron Billing <billing@kron.dev>',
-      to,
-      subject,
-      html,
-    });
-
-    if (error) {
+  async send(to: string, subject: string, html: string, text: string): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: `${this.fromName} <${this.fromEmail}>`,
+        to,
+        subject,
+        html,
+        text,
+      });
+    } catch (err) {
       throw new EmailSendException(
         'Failed to send email',
-        error.message,
+        err instanceof Error ? err.message : undefined,
       );
     }
   }
