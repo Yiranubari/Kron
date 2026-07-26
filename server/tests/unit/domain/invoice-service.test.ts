@@ -12,8 +12,14 @@ class MockEmailRenderer {
 }
 
 class MockPdfRenderer {
+  pdfConverter = { convert: async () => Buffer.from('mock-pdf-content') };
+
   async render(_payload: WebhookPayload): Promise<Buffer> {
     return Buffer.from('mock-pdf-content');
+  }
+
+  renderPreview(_payload: WebhookPayload): string {
+    return '<html><body>Mock PDF Preview</body></html>';
   }
 }
 
