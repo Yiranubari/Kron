@@ -20,3 +20,6 @@ pnpm-debug.log*
 !**/.env.example
 
 .DS_Store
+
+Kron-PRD.md
+.session-context.md
