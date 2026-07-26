@@ -1,5 +1,5 @@
 import { createApp } from './app.js';
-import { env } from './config/index.js';
+import { getEnv } from './config/index.js';
 import { logger } from './infrastructure/logger.service.js';
 
 process.on('uncaughtException', (err) => {
@@ -13,6 +13,7 @@ process.on('unhandledRejection', (reason) => {
   process.exit(1);
 });
 
+const env = getEnv();
 const app = createApp();
 
 app.listen(env.PORT, () => {

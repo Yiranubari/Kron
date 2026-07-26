@@ -3,11 +3,18 @@ import request from 'supertest';
 import { createApp } from '../../src/app.js';
 import { createSamplePayload } from '../fixtures/sample-payload.js';
 import type { Express } from 'express';
+import type { EmailService } from '../../src/infrastructure/email.service.js';
+
+class MockE2eEmailService {
+  async send(_to: string, _subject: string, _html: string): Promise<void> {
+  }
+}
 
 let app: Express;
 
 beforeAll(() => {
-  app = createApp();
+  process.env.RESEND_API_KEY = 're_test_key_for_e2e';
+  app = createApp({ emailService: new MockE2eEmailService() as unknown as EmailService });
 });
 
 describe('POST /webhook/invoice', () => {

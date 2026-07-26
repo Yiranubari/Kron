@@ -1,5 +1,5 @@
 import express from 'express';
-import { env } from './config/index.js';
+import { getEnv } from './config/index.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { requestLogger } from './middleware/logger.js';
 import { createInvoiceRoutes } from './modules/invoice/invoice.routes.js';
@@ -8,11 +8,18 @@ import { UsageAggregationService } from './modules/usage/services/aggregation.se
 import { EmailRenderService } from './modules/rendering/services/email-render.service.js';
 import { PdfRenderService } from './modules/rendering/services/pdf-render.service.js';
 import { PdfConverter } from './infrastructure/pdf-converter.service.js';
+import { EmailService } from './infrastructure/email.service.js';
 import { InvoiceService } from './modules/invoice/services/invoice.service.js';
 import { WebhookController } from './modules/invoice/controllers/webhook.controller.js';
 import { PortalController } from './modules/invoice/controllers/portal.controller.js';
+import type { EmailService as IEmailService } from './infrastructure/email.service.js';
 
-export function createApp() {
+type AppDependencies = {
+  emailService?: IEmailService;
+};
+
+export function createApp(deps?: AppDependencies) {
+  const env = getEnv();
   const app = express();
 
   app.use(express.json());
@@ -26,11 +33,13 @@ export function createApp() {
   const pdfConverter = new PdfConverter();
   const emailRenderService = new EmailRenderService();
   const pdfRenderService = new PdfRenderService(pdfConverter);
+  const emailService = deps?.emailService ?? new EmailService(env.RESEND_API_KEY);
   const invoiceService = new InvoiceService(
     repository,
     aggregationService,
     emailRenderService,
     pdfRenderService,
+    emailService,
     env.FRONTEND_URL,
   );
 

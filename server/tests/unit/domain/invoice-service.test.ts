@@ -23,6 +23,11 @@ class MockPdfRenderer {
   }
 }
 
+class MockEmailService {
+  async send(_to: string, _subject: string, _html: string): Promise<void> {
+  }
+}
+
 let service: InvoiceService;
 let repository: InvoiceRepository;
 
@@ -33,6 +38,7 @@ beforeEach(() => {
     new UsageAggregationService(),
     new MockEmailRenderer(),
     new MockPdfRenderer(),
+    new MockEmailService(),
     'http://localhost:5173',
   );
 });

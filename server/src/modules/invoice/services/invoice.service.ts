@@ -3,6 +3,7 @@ import type { PortalDataResponse, StoredInvoice, WebhookPayload } from '../entit
 import { InvoiceRepository } from '../repositories/invoice.repository.js';
 import { EmailRenderService } from '../../rendering/services/email-render.service.js';
 import { PdfRenderService } from '../../rendering/services/pdf-render.service.js';
+import { EmailService } from '../../../infrastructure/email.service.js';
 import { NotFoundException } from '../../../exceptions/app-exceptions.js';
 import { ErrorCodes } from '../../../constants/error-codes.js';
 
@@ -12,6 +13,7 @@ export class InvoiceService {
     private readonly aggregationService: UsageAggregationService,
     private readonly emailRenderService: EmailRenderService,
     private readonly pdfRenderService: PdfRenderService,
+    private readonly emailService: EmailService,
     private readonly frontendUrl: string,
   ) {}
 
@@ -38,6 +40,12 @@ export class InvoiceService {
 
     const emailHtml = this.emailRenderService.render(payload, portalUrl);
     const pdfBuffer = await this.pdfRenderService.render(payload);
+
+    await this.emailService.send(
+      payload.customer.email,
+      `Invoice from Kron — ${payload.invoice.currency} ${payload.invoice.total}`,
+      emailHtml,
+    );
 
     const stored: StoredInvoice = {
       payload,
