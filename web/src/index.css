@@ -1,0 +1,118 @@
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0e;
+  --bg-card: #1a1a20;
+  --bg-card-elevated: #22222a;
+  --bg-accent: #8b9fba;
+  --bg-accent-muted: rgba(139, 159, 186, 0.12);
+
+  --text-primary: #f0f0f4;
+  --text-secondary: #a0a0b0;
+  --text-muted: #6a6a7a;
+  --text-on-accent: #0c0c10;
+
+  --accent: #8b9fba;
+  --accent-hover: #9fb3cc;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --error: #f87171;
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(139, 159, 186, 0.2);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --font-family: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: var(--font-regular);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.portal {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 20px 24px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logo-sub {
+  font-size: 14px;
+  font-weight: var(--font-extralight);
+  color: var(--text-muted);
+}
+
+.portal-main {
+  flex: 1;
+  padding: 0 24px 40px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.portal-loading {
+  color: var(--text-muted);
+  font-weight: var(--font-light);
+  font-size: 14px;
+  text-align: center;
+  padding-top: 120px;
+}
+
+@media (min-width: 768px) {
+  .portal-main {
+    max-width: 520px;
+    padding: 0 32px 60px;
+  }
+
+  .portal-header {
+    padding: 24px 32px;
+  }
+}
