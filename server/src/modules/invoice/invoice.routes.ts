@@ -21,5 +21,15 @@ export function createInvoiceRoutes(
     portalController.getPortalData.bind(portalController),
   );
 
+  router.get(
+    '/invoice/:invoiceId/pdf',
+    portalController.downloadPdf.bind(portalController),
+  );
+
+  router.get(
+    '/email/:invoiceId/preview',
+    portalController.previewEmail.bind(portalController),
+  );
+
   return router;
 }

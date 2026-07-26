@@ -10,4 +10,19 @@ export class PortalController {
 
     res.status(Status.OK).json(data);
   }
+
+  downloadPdf(req: Request, res: Response): void {
+    const pdfBuffer = this.invoiceService.getPdfBuffer(req.params.invoiceId);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice-${req.params.invoiceId}.pdf"`);
+    res.status(Status.OK).send(pdfBuffer);
+  }
+
+  previewEmail(req: Request, res: Response): void {
+    const emailHtml = this.invoiceService.getEmailPreview(req.params.invoiceId);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(Status.OK).send(emailHtml);
+  }
 }
