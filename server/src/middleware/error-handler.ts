@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { AppError } from '../exceptions/app-exceptions.js';
 import { ErrorCodes } from '../constants/error-codes.js';
 import { Status } from '../constants/status.js';
+import { logger } from '../infrastructure/logger.service.js';
 
 export function errorHandler(
   err: Error,
@@ -35,7 +36,7 @@ export function errorHandler(
     return;
   }
 
-  console.error('Unhandled error:', err);
+  logger.error('Unhandled error', err);
 
   res.status(Status.INTERNAL_SERVER_ERROR).json({
     error: {
