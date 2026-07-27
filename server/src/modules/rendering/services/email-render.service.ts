@@ -22,49 +22,53 @@ export class EmailRenderService {
 
   private renderHtml(payload: WebhookPayload, portalUrl: string): string {
     const element = React.createElement(Email, null,
-      React.createElement('div', { style: { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '600px', margin: '0 auto' } },
-        React.createElement('div', { style: { backgroundColor: '#111827', padding: '24px', borderRadius: '8px 8px 0 0' } },
-          React.createElement('span', { style: { color: '#ffffff', fontSize: '20px', fontWeight: 'bold' } }, 'Kron'),
-          React.createElement('span', { style: { color: '#9ca3af', fontSize: '14px', marginLeft: '8px' } }, 'Billing')
+      React.createElement('div', { style: { fontFamily: "'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", maxWidth: '600px', margin: '0 auto', backgroundColor: '#000000' } },
+        React.createElement('div', { style: { padding: '28px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' } },
+          React.createElement('span', { style: { color: '#f0f0f4', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.02em' } }, 'Kron'),
+          React.createElement('span', { style: { color: '#6a6a7a', fontSize: '13px', marginLeft: '6px', fontWeight: '300' } }, 'Billing')
         ),
-        React.createElement('div', { style: { padding: '24px', backgroundColor: '#ffffff' } },
-          React.createElement('p', { style: { fontSize: '16px', color: '#374151', marginBottom: '16px' } },
+        React.createElement('div', { style: { padding: '28px 24px' } },
+          React.createElement('p', { style: { fontSize: '15px', color: '#f0f0f4', marginBottom: '4px', fontWeight: '300' } },
             `Hi ${payload.customer.name.split(' ')[0]},`
           ),
-          React.createElement('p', { style: { fontSize: '14px', color: '#6b7280', marginBottom: '24px' } },
-            'Your payment has been received. Here\'s a summary of your billing period.'
+          React.createElement('p', { style: { fontSize: '13px', color: '#6a6a7a', marginBottom: '24px', fontWeight: '300' } },
+            'Your payment has been received. Here is a summary of your billing period.'
           ),
           React.createElement(SummaryCard, { customer: payload.customer, invoice: payload.invoice }),
-          React.createElement('div', { style: { marginTop: '24px' } },
+          React.createElement('div', { style: { marginTop: '20px' } },
             React.createElement(LineItemTable, { items: payload.invoice.lineItems, currency: payload.invoice.currency })
           ),
-          React.createElement('div', { style: { marginTop: '16px', textAlign: 'right', fontSize: '14px', color: '#374151' } },
-            React.createElement('span', null, `Subtotal: `),
-            React.createElement('strong', null, currency(payload.invoice.subtotal, payload.invoice.currency)),
-            React.createElement('br'),
-            React.createElement('span', null, `Tax: `),
-            React.createElement('strong', null, currency(payload.invoice.tax, payload.invoice.currency)),
-            React.createElement('br'),
-            React.createElement('span', { style: { fontSize: '16px' } }, `Total: `),
-            React.createElement('strong', { style: { fontSize: '16px' } }, currency(payload.invoice.total, payload.invoice.currency))
+          React.createElement('div', { style: { marginTop: '16px', textAlign: 'right', fontSize: '13px', color: '#a0a0b0' } },
+            React.createElement('div', { style: { marginBottom: '4px' } },
+              React.createElement('span', null, 'Subtotal: '),
+              React.createElement('span', { style: { color: '#f0f0f4' } }, currency(payload.invoice.subtotal, payload.invoice.currency))
+            ),
+            React.createElement('div', { style: { marginBottom: '4px' } },
+              React.createElement('span', null, 'Tax: '),
+              React.createElement('span', { style: { color: '#f0f0f4' } }, currency(payload.invoice.tax, payload.invoice.currency))
+            ),
+            React.createElement('div', { style: { fontSize: '15px', fontWeight: '600', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' } },
+              React.createElement('span', { style: { color: '#a0a0b0' } }, 'Total: '),
+              React.createElement('span', { style: { color: '#f0f0f4' } }, currency(payload.invoice.total, payload.invoice.currency))
+            )
           ),
-          React.createElement('div', { style: { textAlign: 'center', marginTop: '28px' } },
+          React.createElement('div', { style: { textAlign: 'center', marginTop: '32px' } },
             React.createElement(Button, {
               href: portalUrl,
               style: {
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
+                backgroundColor: '#8b9fba',
+                color: '#0c0c10',
                 padding: '12px 32px',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: 'bold',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: '500',
                 textDecoration: 'none',
                 display: 'inline-block',
               }
             }, 'View Full Dashboard')
           )
         ),
-        React.createElement('div', { style: { padding: '16px 24px', textAlign: 'center', fontSize: '12px', color: '#9ca3af', backgroundColor: '#f9fafb', borderRadius: '0 0 8px 8px' } },
+        React.createElement('div', { style: { padding: '16px 24px', textAlign: 'center', fontSize: '11px', color: '#6a6a7a', borderTop: '1px solid rgba(255,255,255,0.06)' } },
           'Kron Billing Engine \u00b7 Usage-based billing simplified'
         )
       )

@@ -15,12 +15,15 @@ function formatNumber(n: number): string {
 }
 
 export function LineItemTable({ items, currency }: Props) {
+  const headerStyle = 'padding:10px 12px;font-size:10px;font-weight:500;color:#6a6a7a;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid rgba(255,255,255,0.06);text-align:left;';
+  const cellStyle = 'padding:10px 12px;font-size:13px;color:#f0f0f4;border-bottom:1px solid rgba(255,255,255,0.06);';
+
   const rowsHtml = items.map((item) => `
     <tr>
-      <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #e5e7eb;">${item.description}</td>
-      <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #e5e7eb;text-align:right;">${formatNumber(item.quantity)}</td>
-      <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #e5e7eb;text-align:right;">${formatAmount(item.rate, currency)}</td>
-      <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #e5e7eb;text-align:right;">${formatAmount(item.amount, currency)}</td>
+      <td style="${cellStyle}">${item.description}</td>
+      <td style="${cellStyle}text-align:right;color:#a0a0b0;">${formatNumber(item.quantity)}</td>
+      <td style="${cellStyle}text-align:right;color:#a0a0b0;">${formatAmount(item.rate, currency)}</td>
+      <td style="${cellStyle}text-align:right;">${formatAmount(item.amount, currency)}</td>
     </tr>
   `).join('');
 
@@ -28,10 +31,10 @@ export function LineItemTable({ items, currency }: Props) {
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
       <thead>
         <tr>
-          <th style="padding:10px 12px;font-size:12px;font-weight:bold;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;text-align:left;">Description</th>
-          <th style="padding:10px 12px;font-size:12px;font-weight:bold;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;text-align:right;">Quantity</th>
-          <th style="padding:10px 12px;font-size:12px;font-weight:bold;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;text-align:right;">Rate</th>
-          <th style="padding:10px 12px;font-size:12px;font-weight:bold;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;text-align:right;">Amount</th>
+          <th style="${headerStyle}">Item</th>
+          <th style="${headerStyle}text-align:right;">Qty</th>
+          <th style="${headerStyle}text-align:right;">Rate</th>
+          <th style="${headerStyle}text-align:right;">Amount</th>
         </tr>
       </thead>
       <tbody>
