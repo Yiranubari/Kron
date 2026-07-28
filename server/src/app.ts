@@ -71,5 +71,5 @@ export function createApp(deps?: AppDependencies) {
 
   app.use(errorHandler);
 
-  return app;
+  return { app, invoiceService };
 }

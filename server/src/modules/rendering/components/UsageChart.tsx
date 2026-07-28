@@ -21,7 +21,7 @@ export function UsageChart({ data, compact }: Props) {
 
     return `
       <td style="width:${cellWidth};padding:1px;vertical-align:bottom;text-align:center;">
-        <div style="height:${barHeight}px;background-color:#8b9fba;border-radius:2px 2px 0 0;min-height:2px;margin:0 auto;width:70%;"></div>
+        <div style="height:${barHeight}px;background-color:#4f8cff;border-radius:2px 2px 0 0;min-height:2px;margin:0 auto;width:70%;"></div>
       </td>
     `;
   }).join('');

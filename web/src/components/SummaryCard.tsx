@@ -34,31 +34,47 @@ export function SummaryCard({ customer, invoice }: Props) {
 
   return (
     <section className="summary-card" id="summary-card">
-      <div className="summary-card__header">
-        <div>
+      <div className="summary-card__bg" />
+      <div className="summary-card__glow" />
+
+      <div className="summary-card__top">
+        <div className="summary-card__info">
           <p className="summary-card__label">Total charged</p>
           <p className="summary-card__total">
             {whole}
             <span className="summary-card__total-cents">{cents}</span>
           </p>
         </div>
-        <span className="summary-card__badge">
-          {invoice.currency.toUpperCase()}
-        </span>
+        <div className="summary-card__meta">
+          <span className="summary-card__badge">
+            {invoice.currency.toUpperCase()}
+          </span>
+          <span className="summary-card__period">
+            {formatDate(invoice.period.start)} &ndash; {formatDate(invoice.period.end)}
+          </span>
+        </div>
       </div>
 
       <div className="summary-card__divider" />
 
-      <div className="summary-card__details">
-        <div>
+      <div className="summary-card__bottom">
+        <div className="summary-card__detail">
           <p className="summary-card__detail-label">Customer</p>
           <p className="summary-card__detail-value">{customer.name}</p>
-          <p className="summary-card__detail-value">{customer.email}</p>
+          <p className="summary-card__detail-meta">{customer.email}</p>
         </div>
-        <div>
-          <p className="summary-card__detail-label">Billing period</p>
+        <div className="summary-card__detail">
+          <p className="summary-card__detail-label">Account</p>
           <p className="summary-card__detail-value">
-            {formatDate(invoice.period.start)} &ndash; {formatDate(invoice.period.end)}
+            {customer.accountId.slice(0, 8)}
+          </p>
+          <p className="summary-card__detail-meta">{invoice.id.slice(0, 8)}</p>
+        </div>
+        <div className="summary-card__detail">
+          <p className="summary-card__detail-label">Invoice</p>
+          <p className="summary-card__detail-value">#{invoice.id.slice(0, 8)}</p>
+          <p className="summary-card__detail-meta">
+            {formatDate(invoice.period.start)}
           </p>
         </div>
       </div>

@@ -21,6 +21,36 @@ export function PortalPage() {
   const state = useInvoiceData(invoiceId);
   const { toasts, show, dismiss } = useToast();
   const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [showEmailField, setShowEmailField] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+
+  async function handleSendEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!invoiceId || sending || !emailInput.trim()) return;
+
+    setSending(true);
+    try {
+      const res = await fetch(`/invoice/${invoiceId}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.trim() }),
+      });
+
+      if (!res.ok) {
+        show('error', "We couldn't send the email right now. Please try again in a moment.");
+        return;
+      }
+
+      show('success', 'Invoice sent! Check your inbox.');
+      setShowEmailField(false);
+      setEmailInput('');
+    } catch {
+      show('error', 'Something went wrong while sending. Please check your connection and try again.');
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function handleDownloadPdf() {
     if (!invoiceId || downloading) return;
@@ -54,12 +84,18 @@ export function PortalPage() {
     return (
       <div className="portal">
         <header className="portal-header">
-          <span className="logo">Kron</span>
-          <span className="logo-sub">Billing</span>
+          <span className="portal-header__brand">
+            <span className="portal-header__logo">Kron</span>
+            <span className="portal-header__sublogo">Billing</span>
+          </span>
         </header>
         <main className="portal-main">
           <div className="portal__loading">
-            <div className="portal__spinner" />
+            <div className="portal__loading-dots">
+              <span className="portal__loading-dot" />
+              <span className="portal__loading-dot" />
+              <span className="portal__loading-dot" />
+            </div>
             <p className="portal__loading-text">Loading your invoice...</p>
           </div>
         </main>
@@ -71,13 +107,23 @@ export function PortalPage() {
     return (
       <div className="portal">
         <header className="portal-header">
-          <span className="logo">Kron</span>
-          <span className="logo-sub">Billing</span>
+          <span className="portal-header__brand">
+            <span className="portal-header__logo">Kron</span>
+            <span className="portal-header__sublogo">Billing</span>
+          </span>
         </header>
         <main className="portal-main">
           <div className="portal__error">
-            <span className="portal__error-icon">○</span>
+            <div className="portal__error-icon">!</div>
             <p className="portal__error-message">{state.message}</p>
+            <div className="portal__error-action">
+              <button
+                className="portal__btn portal__btn--secondary"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            </div>
           </div>
         </main>
         <ToastContainer toasts={toasts} onDismiss={dismiss} />
@@ -90,22 +136,42 @@ export function PortalPage() {
   return (
     <div className="portal">
       <header className="portal-header">
-        <span className="logo">Kron</span>
-        <span className="logo-sub">Billing</span>
+        <a href="/" className="portal-header__brand-link">
+          <span className="portal-header__logo">Kron</span>
+          <span className="portal-header__sublogo">Billing</span>
+        </a>
+        <span className="portal-header__meta">
+          Invoice #{invoiceId?.slice(0, 8)}
+        </span>
       </header>
 
       <main className="portal-main">
-        <div className="portal__greeting">
-          <p className="portal__greeting-text">{greeting()}, {customer.name.split(' ')[0]}</p>
-          <p className="portal__greeting-sub">Here is your billing summary</p>
+        <div className="portal__greeting portal__section">
+          <p className="portal__greeting-text">
+            {greeting()}, <strong>{customer.name.split(' ')[0]}</strong>
+          </p>
+          <p className="portal__greeting-sub">
+            Here is your billing summary for{' '}
+            {new Date(invoice.period.start).toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+              timeZone: 'UTC',
+            })}
+          </p>
         </div>
 
-        <div className="portal__section">
-          <SummaryCard customer={customer} invoice={invoice} />
-        </div>
+        <div className="portal__grid">
+          <div className="portal__section portal__grid--full">
+            <SummaryCard customer={customer} invoice={invoice} />
+          </div>
 
-        <div className="portal__section">
-          <UsageChart data={usage.dailyCallCounts} />
+          <div className="portal__section">
+            <UsageChart data={usage.dailyCallCounts} />
+          </div>
+
+          <div className="portal__section">
+            <LatencyStats stats={usage.latency} />
+          </div>
         </div>
 
         <div className="portal__section">
@@ -118,19 +184,79 @@ export function PortalPage() {
           />
         </div>
 
-        <div className="portal__section">
-          <LatencyStats stats={usage.latency} />
-        </div>
-
         <div className="portal__actions">
-          <button
-            className="portal__btn portal__btn--secondary"
-            onClick={handleDownloadPdf}
-            disabled={downloading}
-            id="download-pdf"
-          >
-            {downloading ? 'Preparing...' : 'Download PDF'}
-          </button>
+          {showEmailField ? (
+            <form className="portal__email-form" onSubmit={handleSendEmail}>
+              <input
+                type="email"
+                className="portal__email-input"
+                placeholder="Enter your email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                autoFocus
+                required
+                disabled={sending}
+              />
+              <button
+                type="submit"
+                className="portal__btn portal__btn--primary"
+                disabled={sending || !emailInput.trim()}
+              >
+                {sending ? (
+                  <><span className="portal__btn-spinner" /> Sending...</>
+                ) : (
+                  'Send'
+                )}
+              </button>
+              <button
+                type="button"
+                className="portal__btn portal__btn--secondary"
+                onClick={() => {
+                  setShowEmailField(false);
+                  setEmailInput('');
+                }}
+                disabled={sending}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <>
+              <button
+                className="portal__btn portal__btn--secondary"
+                onClick={() => setShowEmailField(true)}
+                id="send-email"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                Email my invoice
+              </button>
+              <button
+                className="portal__btn portal__btn--primary"
+                onClick={handleDownloadPdf}
+                disabled={downloading}
+                id="download-pdf"
+              >
+                {downloading ? (
+                  <>
+                    <span className="portal__btn-spinner" />
+                    Preparing...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download PDF
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </main>
 

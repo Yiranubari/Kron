@@ -18,7 +18,7 @@ export function SummaryCard({ customer, invoice }: Props) {
 
   return (
     <Row>
-      <Column padding="20px" backgroundColor="#8b9fba" borderRadius="12px">
+      <Column padding="20px" backgroundColor="#4f8cff" borderRadius="12px">
         <Row>
           <Column>
             <Html html={`

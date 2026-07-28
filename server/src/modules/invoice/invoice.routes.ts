@@ -31,5 +31,10 @@ export function createInvoiceRoutes(
     portalController.previewEmail.bind(portalController),
   );
 
+  router.post(
+    '/invoice/:invoiceId/send',
+    portalController.sendEmail.bind(portalController),
+  );
+
   return router;
 }

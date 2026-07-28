@@ -15,7 +15,7 @@ let app: Express;
 beforeAll(() => {
   process.env.SMTP_USER = 'test@example.com';
   process.env.SMTP_PASS = 'test-app-password';
-  app = createApp({ emailService: new MockE2eEmailService() as unknown as EmailService });
+  app = createApp({ emailService: new MockE2eEmailService() as unknown as EmailService }).app;
 });
 
 describe('POST /webhook/invoice', () => {

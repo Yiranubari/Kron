@@ -56,8 +56,8 @@ export class EmailRenderService {
             React.createElement(Button, {
               href: portalUrl,
               style: {
-                backgroundColor: '#8b9fba',
-                color: '#0c0c10',
+                backgroundColor: '#4f8cff',
+                color: '#ffffff',
                 padding: '12px 32px',
                 borderRadius: '10px',
                 fontSize: '13px',

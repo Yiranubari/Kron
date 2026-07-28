@@ -1,11 +1,15 @@
-import { UsageAggregationService } from '../../usage/services/aggregation.service.js';
-import type { PortalDataResponse, StoredInvoice, WebhookPayload } from '../entities/invoice.entity.js';
-import { InvoiceRepository } from '../repositories/invoice.repository.js';
-import { EmailRenderService } from '../../rendering/services/email-render.service.js';
-import { PdfRenderService } from '../../rendering/services/pdf-render.service.js';
-import { EmailService } from '../../../infrastructure/email.service.js';
-import { NotFoundException } from '../../../exceptions/app-exceptions.js';
-import { ErrorCodes } from '../../../constants/error-codes.js';
+import { UsageAggregationService } from "../../usage/services/aggregation.service.js";
+import type {
+  PortalDataResponse,
+  StoredInvoice,
+  WebhookPayload,
+} from "../entities/invoice.entity.js";
+import { InvoiceRepository } from "../repositories/invoice.repository.js";
+import { EmailRenderService } from "../../rendering/services/email-render.service.js";
+import { PdfRenderService } from "../../rendering/services/pdf-render.service.js";
+import { EmailService } from "../../../infrastructure/email.service.js";
+import { NotFoundException } from "../../../exceptions/app-exceptions.js";
+import { ErrorCodes } from "../../../constants/error-codes.js";
 
 export class InvoiceService {
   constructor(
@@ -17,12 +21,32 @@ export class InvoiceService {
     private readonly frontendUrl: string,
   ) {}
 
+  async sendEmail(invoiceId: string, recipientEmail: string): Promise<void> {
+    const stored = this.repository.findById(invoiceId);
+
+    if (!stored || !stored.renderedEmail) {
+      throw new NotFoundException(
+        ErrorCodes.INVOICE_NOT_FOUND,
+        "Invoice not found",
+      );
+    }
+
+    await this.emailService.send(
+      recipientEmail,
+      "Your Kron invoice is ready",
+      stored.renderedEmail,
+      stored.renderedEmailText ?? "",
+    );
+  }
+
   async processInvoice(payload: WebhookPayload): Promise<{
     invoiceId: string;
     portalUrl: string;
     pdfUrl: string;
   }> {
-    const aggregatedUsage = this.aggregationService.aggregate(payload.usage.callRecords);
+    const aggregatedUsage = this.aggregationService.aggregate(
+      payload.usage.callRecords,
+    );
 
     const portalData: PortalDataResponse = {
       customer: payload.customer,
@@ -38,15 +62,20 @@ export class InvoiceService {
     const portalUrl = `${this.frontendUrl}/portal/${invoiceId}`;
     const pdfUrl = `/invoice/${invoiceId}/pdf`;
 
-    const { html: emailHtml, text: emailText } = this.emailRenderService.render(payload, portalUrl);
+    const { html: emailHtml, text: emailText } = this.emailRenderService.render(
+      payload,
+      portalUrl,
+    );
     const pdfBuffer = await this.pdfRenderService.render(payload);
 
-    await this.emailService.send(
-      payload.customer.email,
-      'Your Kron invoice is ready',
-      emailHtml,
-      emailText,
-    );
+    try {
+      await this.emailService.send(
+        payload.customer.email,
+        "Your Kron invoice is ready",
+        emailHtml,
+        emailText,
+      );
+    } catch {}
 
     const stored: StoredInvoice = {
       payload,
@@ -65,7 +94,10 @@ export class InvoiceService {
     const stored = this.repository.findById(invoiceId);
 
     if (!stored) {
-      throw new NotFoundException(ErrorCodes.INVOICE_NOT_FOUND, 'Invoice not found');
+      throw new NotFoundException(
+        ErrorCodes.INVOICE_NOT_FOUND,
+        "Invoice not found",
+      );
     }
 
     return stored.portalData;
@@ -79,7 +111,10 @@ export class InvoiceService {
     const stored = this.repository.findById(invoiceId);
 
     if (!stored || !stored.renderedEmail) {
-      throw new NotFoundException(ErrorCodes.INVOICE_NOT_FOUND, 'Invoice not found or email not rendered');
+      throw new NotFoundException(
+        ErrorCodes.INVOICE_NOT_FOUND,
+        "Invoice not found or email not rendered",
+      );
     }
 
     return stored.renderedEmail;
@@ -89,7 +124,10 @@ export class InvoiceService {
     const stored = this.repository.findById(invoiceId);
 
     if (!stored || !stored.renderedPdf) {
-      throw new NotFoundException(ErrorCodes.INVOICE_NOT_FOUND, 'Invoice not found or PDF not rendered');
+      throw new NotFoundException(
+        ErrorCodes.INVOICE_NOT_FOUND,
+        "Invoice not found or PDF not rendered",
+      );
     }
 
     return stored.renderedPdf;
