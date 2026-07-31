@@ -1,9 +1,8 @@
-import nodemailer from 'nodemailer';
-import { EmailSendException } from '../exceptions/app-exceptions.js';
+import { EmailSendException } from "../exceptions/app-exceptions.js";
 
+const ELASTIC_EMAIL_API_URL = "https://api.elasticemail.com/v4/emails";
+const REQUEST_TIMEOUT_MS = 15000;
 export class EmailService {
-  private transporter: nodemailer.Transporter;
-
   constructor(
     private readonly smtpHost: string,
     private readonly smtpPort: number,
@@ -12,36 +11,58 @@ export class EmailService {
     private readonly smtpPass: string,
     private readonly fromEmail: string,
     private readonly fromName: string,
-  ) {
-    this.transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpEncryption === 'ssl',
-      auth: { user: smtpUser, pass: smtpPass },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-    });
-  }
+  ) {}
 
-  async send(to: string, subject: string, html: string, text: string): Promise<void> {
+  async send(
+    to: string,
+    subject: string,
+    html: string,
+    text: string,
+  ): Promise<void> {
     if (!this.smtpUser || !this.smtpPass) {
-      throw new EmailSendException('SMTP is not configured');
+      throw new EmailSendException("SMTP is not configured");
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
-      await this.transporter.sendMail({
-        from: `${this.fromName} <${this.fromEmail}>`,
-        to,
-        subject,
-        html,
-        text,
+      const response = await fetch(ELASTIC_EMAIL_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-ElasticEmail-ApiKey": this.smtpPass,
+        },
+        body: JSON.stringify({
+          Recipients: {
+            To: [{ Email: to }],
+          },
+          Content: {
+            From: this.fromEmail,
+            FromName: this.fromName,
+            Subject: subject,
+            Body: [
+              { ContentType: "HTML", Content: html },
+              { ContentType: "PlainText", Content: text },
+            ],
+          },
+        }),
+        signal: controller.signal,
       });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(
+          `Elastic Email API returned ${response.status}: ${body}`,
+        );
+      }
     } catch (err) {
       throw new EmailSendException(
-        'Failed to send email',
+        "Failed to send email",
         err instanceof Error ? err.message : undefined,
       );
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }
