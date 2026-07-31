@@ -409,15 +409,15 @@ Kron uses a two-service architecture: the Express backend (with Puppeteer) runs 
 
 ### Server: Railway
 
-[Railway](https://railway.app) builds Node.js apps with Nixpacks. No Dockerfile is needed. When Nixpacks detects `puppeteer` in `server/package.json`, it installs Chromium and its system libraries automatically. The server also launches Puppeteer with `--no-sandbox` so it works on Railway's root containers.
+The server deploys with a **Dockerfile** (`server/Dockerfile`), not Nixpacks. This is required because Nixpacks installs Chromium from Ubuntu 24.04's apt repository, where the `chromium` package is a snap transitional stub that cannot run inside a container. The Dockerfile uses a Debian-based Node image, installs Chrome for Testing via Puppeteer's own installer, and keeps the `--no-sandbox` launch flags that root containers need.
 
 **Steps:**
 
 1. Push the repository to GitHub.
 2. Go to [railway.app](https://railway.app) and create a new project.
 3. Select **Deploy from GitHub repo** and connect your repository.
-4. Set the **Root Directory** to `server` (the included `server/railway.json` pins the build and start commands).
-5. Railway runs `npm run build` then `npm start` automatically. The health check at `GET /health` is used for deployment status.
+4. Set the **Root Directory** to `server` (the included `server/railway.json` pins the Dockerfile builder, health check, and restart policy).
+5. Railway builds the image and runs the container. The health check at `GET /health` is used for deployment status.
 6. Set these environment variables in the Railway dashboard (Variables tab):
 
 | Variable | Description |
@@ -442,7 +442,9 @@ curl https://kron-server.up.railway.app/health
 
 > SMTP is optional. If `SMTP_USER` and `SMTP_PASS` are left unset, the server boots fine, email sending returns a friendly error, and the portal, PDF, and email preview endpoints still work.
 
-> If PDF generation ever fails with a "Could not find Chrome" error, add these variables in Railway: `PUPPETEER_SKIP_DOWNLOAD=true` and `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`, then redeploy.
+> Chrome for Testing is installed during the Docker build into Puppeteer's cache, so `PUPPETEER_SKIP_DOWNLOAD` and `PUPPETEER_EXECUTABLE_PATH` are **not** needed. Do not set them; they would point at a browser that does not exist in this image.
+
+> Building the Docker image locally for testing requires Docker. Run `docker build -t kron-server .` inside `server/`.
 
 ### Frontend: Vercel
 
