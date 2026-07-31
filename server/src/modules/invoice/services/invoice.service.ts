@@ -8,6 +8,7 @@ import { InvoiceRepository } from "../repositories/invoice.repository.js";
 import { EmailRenderService } from "../../rendering/services/email-render.service.js";
 import { PdfRenderService } from "../../rendering/services/pdf-render.service.js";
 import { EmailService } from "../../../infrastructure/email.service.js";
+import { logger } from "../../../infrastructure/logger.service.js";
 import { NotFoundException } from "../../../exceptions/app-exceptions.js";
 import { ErrorCodes } from "../../../constants/error-codes.js";
 
@@ -75,7 +76,12 @@ export class InvoiceService {
         emailHtml,
         emailText,
       );
-    } catch {}
+    } catch (err) {
+      logger.warn(
+        "Failed to send invoice email for webhook processing",
+        err instanceof Error ? err.message : err,
+      );
+    }
 
     const stored: StoredInvoice = {
       payload,

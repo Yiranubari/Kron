@@ -18,13 +18,13 @@ describe('EmailService', () => {
     vi.unstubAllGlobals();
   });
 
-  it('rejects immediately when SMTP is not configured', async () => {
+  it('rejects immediately when the API key is not configured', async () => {
     const service = new EmailService(
       'smtp.elasticemail.com', 2525, 'starttls', '', '', 'billing@kron.dev', 'Kron Billing',
     );
 
     await expect(service.send('test@example.com', 'Subject', '<html></html>', 'Text')).rejects.toThrow(
-      'SMTP is not configured',
+      'Elastic Email API key is not configured',
     );
   });
 
@@ -46,7 +46,7 @@ describe('EmailService', () => {
     expect((init?.headers as Record<string, string>)['X-ElasticEmail-ApiKey']).toBe('api-key');
 
     const body = JSON.parse(init?.body as string);
-    expect(body.Recipients.To).toEqual([{ Email: 'test@example.com' }]);
+    expect(body.Recipients).toEqual([{ Email: 'test@example.com' }]);
     expect(body.Content.From).toBe('billing@kron.dev');
     expect(body.Content.FromName).toBe('Kron Billing');
     expect(body.Content.Subject).toBe('Your Kron invoice is ready');

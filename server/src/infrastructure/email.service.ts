@@ -19,8 +19,8 @@ export class EmailService {
     html: string,
     text: string,
   ): Promise<void> {
-    if (!this.smtpUser || !this.smtpPass) {
-      throw new EmailSendException("SMTP is not configured");
+    if (!this.smtpPass) {
+      throw new EmailSendException("Elastic Email API key is not configured");
     }
 
     const controller = new AbortController();
@@ -34,9 +34,7 @@ export class EmailService {
           "X-ElasticEmail-ApiKey": this.smtpPass,
         },
         body: JSON.stringify({
-          Recipients: {
-            To: [{ Email: to }],
-          },
+          Recipients: [{ Email: to }],
           Content: {
             From: this.fromEmail,
             FromName: this.fromName,
