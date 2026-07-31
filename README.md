@@ -134,8 +134,8 @@ The environment file expects these variables:
 | `SMTP_HOST` | SMTP server hostname | `smtp.elasticemail.com` |
 | `SMTP_PORT` | SMTP server port | `2525` |
 | `SMTP_ENCRYPTION` | Encryption method (`ssl` or `starttls`) | `starttls` |
-| `SMTP_USER` | SMTP username (required) | --- |
-| `SMTP_PASS` | SMTP password (required) | --- |
+| `SMTP_USER` | SMTP username (optional, email sending only) | --- |
+| `SMTP_PASS` | SMTP password (optional, email sending only) | --- |
 | `FROM_EMAIL` | Sender email address | `billing@kron.dev` |
 | `FROM_NAME` | Sender display name | `Kron Billing` |
 
@@ -405,20 +405,20 @@ This project was built with [Unlayer Elements](https://unlayer.com), and it is p
 
 ## Deployment
 
-Kron uses a two-service architecture: the Express backend (with Puppeteer) runs on Railway, and the React frontend runs on Vercel.
+Kron uses a two-service architecture: the Express backend (with Puppeteer) runs on Railway, and the React frontend runs on Vercel. Deploy in this order: **Railway first, then Vercel**, because the frontend needs your Railway URL.
 
 ### Server: Railway
 
-[Railway](https://railway.app) supports Node.js with Puppeteer out of the box. No Dockerfile is needed.
+[Railway](https://railway.app) builds Node.js apps with Nixpacks. No Dockerfile is needed. When Nixpacks detects `puppeteer` in `server/package.json`, it installs Chromium and its system libraries automatically. The server also launches Puppeteer with `--no-sandbox` so it works on Railway's root containers.
 
 **Steps:**
 
 1. Push the repository to GitHub.
 2. Go to [railway.app](https://railway.app) and create a new project.
 3. Select **Deploy from GitHub repo** and connect your repository.
-4. Railway auto-detects the Node.js project in the `server/` directory. Set the **Root Directory** to `server`.
-5. Railway runs `npm run build` then `npm start` automatically.
-6. Set these environment variables in the Railway dashboard:
+4. Set the **Root Directory** to `server` (the included `server/railway.json` pins the build and start commands).
+5. Railway runs `npm run build` then `npm start` automatically. The health check at `GET /health` is used for deployment status.
+6. Set these environment variables in the Railway dashboard (Variables tab):
 
 | Variable | Description |
 | :--- | :--- |
@@ -433,7 +433,16 @@ Kron uses a two-service architecture: the Express backend (with Puppeteer) runs 
 
 7. Once deployed, copy your Railway URL (e.g. `https://kron-server.up.railway.app`).
 
-> Note: The server does not require SMTP to run. If you leave SMTP vars unset, email sending will fail but the portal, PDF, and email preview endpoints will still work.
+**Verify the server:**
+
+```bash
+curl https://kron-server.up.railway.app/health
+# -> {"status":"ok"}
+```
+
+> SMTP is optional. If `SMTP_USER` and `SMTP_PASS` are left unset, the server boots fine, email sending returns a friendly error, and the portal, PDF, and email preview endpoints still work.
+
+> If PDF generation ever fails with a "Could not find Chrome" error, add these variables in Railway: `PUPPETEER_SKIP_DOWNLOAD=true` and `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`, then redeploy.
 
 ### Frontend: Vercel
 
@@ -446,7 +455,7 @@ Kron uses a two-service architecture: the Express backend (with Puppeteer) runs 
 3. Set the **Root Directory** to `web`.
 4. Set the **Build Command** to `npm run build`.
 5. Set the **Output Directory** to `dist`.
-6. Open `web/vercel.json` and replace `RAILWAY_URL` with your Railway deployment domain (e.g., `kron-server.up.railway.app`):
+6. Open `web/vercel.json` and replace `RAILWAY_URL` with your Railway deployment domain (e.g. `kron-server.up.railway.app`):
 
    ```json
    {
@@ -471,10 +480,15 @@ Kron uses a two-service architecture: the Express backend (with Puppeteer) runs 
    }
    ```
 
-7. Commit and push the change, or paste the config in Vercel's dashboard.
-8. Vercel deploys automatically on push.
+7. Commit and push the change. Vercel deploys automatically on push.
+8. Open your deployment settings and set `FRONTEND_URL` on Railway to your Vercel URL if you did not set it already, so webhook responses return working portal links.
 
-Your frontend will be live at `https://your-project.vercel.app`. API calls from the browser hit Vercel, which forwards them to Railway seamlessly.
+**Verify the full stack:**
+
+1. Your frontend is live at `https://your-project.vercel.app`.
+2. The demo invoice is seeded automatically when the Railway server starts, so open `https://your-project.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001` to see the portal with data.
+3. API calls from the browser hit Vercel, which forwards them to Railway seamlessly.
+4. Test the webhook end to end by POSTing the payload from the API reference above to `https://kron-server.up.railway.app/webhook/invoice` (or run `node scripts/simulate-webhook.mjs https://kron-server.up.railway.app`).
 
 ---
 

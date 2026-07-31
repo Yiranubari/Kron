@@ -7,8 +7,8 @@ const envSchema = z.object({
   SMTP_HOST: z.string().default('smtp.elasticemail.com'),
   SMTP_PORT: z.coerce.number().default(2525),
   SMTP_ENCRYPTION: z.enum(['ssl', 'starttls']).default('starttls'),
-  SMTP_USER: z.string(),
-  SMTP_PASS: z.string(),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASS: z.string().default(''),
   FROM_EMAIL: z.string().email().default('billing@kron.dev'),
   FROM_NAME: z.string().default('Kron Billing'),
 });
