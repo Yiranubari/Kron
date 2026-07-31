@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://RAILWAY_URL/api/$1"
+    },
+    {
+      "source": "/invoice/(.*)",
+      "destination": "https://RAILWAY_URL/invoice/$1"
+    },
+    {
+      "source": "/email/(.*)",
+      "destination": "https://RAILWAY_URL/email/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

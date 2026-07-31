@@ -403,6 +403,81 @@ This project was built with [Unlayer Elements](https://unlayer.com), and it is p
 
 ---
 
+## Deployment
+
+Kron uses a two-service architecture: the Express backend (with Puppeteer) runs on Railway, and the React frontend runs on Vercel.
+
+### Server: Railway
+
+[Railway](https://railway.app) supports Node.js with Puppeteer out of the box. No Dockerfile is needed.
+
+**Steps:**
+
+1. Push the repository to GitHub.
+2. Go to [railway.app](https://railway.app) and create a new project.
+3. Select **Deploy from GitHub repo** and connect your repository.
+4. Railway auto-detects the Node.js project in the `server/` directory. Set the **Root Directory** to `server`.
+5. Railway runs `npm run build` then `npm start` automatically.
+6. Set these environment variables in the Railway dashboard:
+
+| Variable | Description |
+| :--- | :--- |
+| `FRONTEND_URL` | Your Vercel deployment URL (e.g. `https://kron-web.vercel.app`) |
+| `SMTP_HOST` | Your SMTP server hostname |
+| `SMTP_PORT` | Your SMTP server port |
+| `SMTP_ENCRYPTION` | `ssl` or `starttls` |
+| `SMTP_USER` | SMTP username |
+| `SMTP_PASS` | SMTP password |
+| `FROM_EMAIL` | Sender email address |
+| `FROM_NAME` | Sender display name |
+
+7. Once deployed, copy your Railway URL (e.g. `https://kron-server.up.railway.app`).
+
+> Note: The server does not require SMTP to run. If you leave SMTP vars unset, email sending will fail but the portal, PDF, and email preview endpoints will still work.
+
+### Frontend: Vercel
+
+[Vercel](https://vercel.com) hosts the React SPA and proxies API calls to Railway.
+
+**Steps:**
+
+1. Go to [vercel.com](https://vercel.com) and create a new project.
+2. Import your GitHub repository.
+3. Set the **Root Directory** to `web`.
+4. Set the **Build Command** to `npm run build`.
+5. Set the **Output Directory** to `dist`.
+6. Open `web/vercel.json` and replace `RAILWAY_URL` with your Railway deployment domain (e.g., `kron-server.up.railway.app`):
+
+   ```json
+   {
+     "rewrites": [
+       {
+         "source": "/api/(.*)",
+         "destination": "https://kron-server.up.railway.app/api/$1"
+       },
+       {
+         "source": "/invoice/(.*)",
+         "destination": "https://kron-server.up.railway.app/invoice/$1"
+       },
+       {
+         "source": "/email/(.*)",
+         "destination": "https://kron-server.up.railway.app/email/$1"
+       },
+       {
+         "source": "/(.*)",
+         "destination": "/index.html"
+       }
+     ]
+   }
+   ```
+
+7. Commit and push the change, or paste the config in Vercel's dashboard.
+8. Vercel deploys automatically on push.
+
+Your frontend will be live at `https://your-project.vercel.app`. API calls from the browser hit Vercel, which forwards them to Railway seamlessly.
+
+---
+
 ## License
 
 MIT
