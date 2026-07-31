@@ -32,7 +32,11 @@ export function createApp(deps?: AppDependencies) {
   const aggregationService = new UsageAggregationService();
   const pdfConverter = new PdfConverter();
   const emailRenderService = new EmailRenderService();
-  const pdfRenderService = new PdfRenderService(pdfConverter);
+  const pdfRenderService = new PdfRenderService(
+    pdfConverter,
+    env.FROM_EMAIL,
+    env.FROM_NAME,
+  );
   const emailService = deps?.emailService ?? new EmailService(
     env.SMTP_HOST,
     env.SMTP_PORT,

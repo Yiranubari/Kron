@@ -13,7 +13,11 @@ function formatNumber(n: number): string {
 }
 
 export class PdfRenderService {
-  constructor(private readonly pdfConverter: PdfConverter) {}
+  constructor(
+    private readonly pdfConverter: PdfConverter,
+    private readonly fromEmail: string,
+    private readonly fromName: string,
+  ) {}
 
   async render(payload: WebhookPayload): Promise<Buffer> {
     const html = this.buildDocument(payload);
@@ -88,8 +92,8 @@ export class PdfRenderService {
           <td style="width:50%;padding:0 24px 0 0;">
             <div style="margin-bottom:24px;">
               <div style="font-size:9px;color:#606070;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">From</div>
-              <div style="font-size:14px;color:#e8e8ec;font-weight:500;">Kron Billing Engine</div>
-              <div style="font-size:12px;color:#909098;margin-top:2px;font-weight:300;">billing@kron.dev</div>
+              <div style="font-size:14px;color:#e8e8ec;font-weight:500;">${this.fromName}</div>
+              <div style="font-size:12px;color:#909098;margin-top:2px;font-weight:300;">${this.fromEmail}</div>
             </div>
           </td>
           <td style="width:50%;padding:0 0 0 24px;">
