@@ -32,7 +32,8 @@ RUN apt-get update \
        libxss1 \
        libxtst6 \
        xdg-utils \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g npm@11.6.1 --no-audit --no-fund
 
 WORKDIR /app
 
