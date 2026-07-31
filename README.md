@@ -95,7 +95,7 @@ Both the email and PDF are rendered from the same data structure, using the same
 
 ### Prerequisites
 
-- Node.js 18 or later
+- Node.js 20.19 or later
 - npm
 
 ### Installation
