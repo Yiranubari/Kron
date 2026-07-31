@@ -10,6 +10,16 @@ describe('EmailService', () => {
     await expect(service.send('test@example.com', 'Subject', '<html></html>', 'Text')).rejects.toThrow();
   });
 
+  it('rejects immediately when SMTP is not configured', async () => {
+    const service = new EmailService(
+      'smtp.elasticemail.com', 2525, 'starttls', '', '', 'billing@kron.dev', 'Kron Billing',
+    );
+
+    await expect(service.send('test@example.com', 'Subject', '<html></html>', 'Text')).rejects.toThrow(
+      'SMTP is not configured',
+    );
+  });
+
   it('accepts valid configuration', () => {
     const service = new EmailService(
       'smtp.gmail.com', 465, 'ssl', 'test@gmail.com', 'app-password', 'test@gmail.com', 'Test',

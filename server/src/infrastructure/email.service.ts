@@ -18,10 +18,17 @@ export class EmailService {
       port: smtpPort,
       secure: smtpEncryption === 'ssl',
       auth: { user: smtpUser, pass: smtpPass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
 
   async send(to: string, subject: string, html: string, text: string): Promise<void> {
+    if (!this.smtpUser || !this.smtpPass) {
+      throw new EmailSendException('SMTP is not configured');
+    }
+
     try {
       await this.transporter.sendMail({
         from: `${this.fromName} <${this.fromEmail}>`,
