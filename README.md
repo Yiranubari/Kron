@@ -6,13 +6,11 @@ A usage-based billing engine that turns a single webhook event into three custom
 
 ## Demo
 
-There is a live demo pre-loaded on server startup. Once the server is running:
+The project is live at [https://kron-three.vercel.app](https://kron-three.vercel.app) with the backend on [https://kron-production-2936.up.railway.app](https://kron-production-2936.up.railway.app). Demo data is seeded automatically on startup, so no signup or API key is needed. To run the project locally, see the [Getting Started](#getting-started) section.
 
-- **Portal**: [http://localhost:3001/portal/550e8400-e29b-41d4-a716-446655440001](http://localhost:5173/portal/550e8400-e29b-41d4-a716-446655440001)
-- **PDF**: [http://localhost:3001/invoice/550e8400-e29b-41d4-a716-446655440001/pdf](http://localhost:3001/invoice/550e8400-e29b-41d4-a716-446655440001/pdf)
-- **Email preview**: [http://localhost:3001/email/550e8400-e29b-41d4-a716-446655440001/preview](http://localhost:3001/email/550e8400-e29b-41d4-a716-446655440001/preview)
-
-No signup or API key is needed. Data is seeded automatically when the server starts.
+- **Portal**: [https://kron-three.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001](https://kron-three.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001)
+- **PDF**: [https://kron-three.vercel.app/invoice/550e8400-e29b-41d4-a716-446655440001/pdf](https://kron-three.vercel.app/invoice/550e8400-e29b-41d4-a716-446655440001/pdf)
+- **Email preview**: [https://kron-three.vercel.app/email/550e8400-e29b-41d4-a716-446655440001/preview](https://kron-three.vercel.app/email/550e8400-e29b-41d4-a716-446655440001/preview)
 
 ---
 
@@ -40,7 +38,7 @@ The transactional email receipt with invoice summary, line items, and totals.
 - **Usage aggregation** -- Incoming call records are grouped by date, and latency metrics (average, p95) are calculated automatically.
 - **Webhook-driven workflow** -- A single POST with the invoice payload triggers everything: aggregation, rendering, and delivery.
 - **Unlayer Elements powered** -- Email and PDF rendering shares React components from the Unlayer Elements library, ensuring visual consistency across formats.
-- **Demo data pre-loaded** -- The server seeds itself with realistic invoice data on startup. You can test the entire flow without setting up a billing provider.
+- **Demo data pre-loaded** -- The server seeds itself with realistic invoice data on startup. The entire flow can be tested without setting up a billing provider.
 - **Simulation script included** -- A Node.js script generates realistic usage data and sends it to the webhook endpoint for testing.
 
 ---
@@ -62,7 +60,7 @@ Webhook POST /webhook/invoice
         |
         +--> PdfRenderService produces a PDF via Puppeteer
         |
-        +--> EmailService sends the receipt via SMTP
+        +--> EmailService sends the receipt via the Elastic Email API
         |
         v
   Stored in memory (InvoiceRepository)
@@ -84,7 +82,7 @@ Both the email and PDF are rendered from the same data structure, using the same
 | Frontend | React 19, TypeScript, Vite |
 | Email rendering | Unlayer Elements (`@unlayer/react-elements`) |
 | PDF generation | Puppeteer (headless Chrome) |
-| Email delivery | Nodemailer (SMTP) |
+| Email delivery | Elastic Email API (v4 HTTP) |
 | Data validation | Zod |
 | Testing | Vitest, Supertest |
 | In-memory store | Custom `MemoryStore` class |
@@ -131,15 +129,15 @@ The environment file expects these variables:
 | `PORT` | Server port | `3001` |
 | `FRONTEND_URL` | URL of the web frontend | `http://localhost:5173` |
 | `NODE_ENV` | Environment (`development`, `production`, `test`) | `development` |
-| `SMTP_HOST` | SMTP server hostname | `smtp.elasticemail.com` |
-| `SMTP_PORT` | SMTP server port | `2525` |
-| `SMTP_ENCRYPTION` | Encryption method (`ssl` or `starttls`) | `starttls` |
-| `SMTP_USER` | SMTP username (optional, email sending only) | --- |
-| `SMTP_PASS` | SMTP password (optional, email sending only) | --- |
+| `SMTP_HOST` | SMTP server hostname (legacy, unused by the HTTP API) | `smtp.elasticemail.com` |
+| `SMTP_PORT` | SMTP server port (legacy, unused by the HTTP API) | `2525` |
+| `SMTP_ENCRYPTION` | Encryption method (legacy, unused by the HTTP API) | `starttls` |
+| `SMTP_USER` | SMTP username (legacy, unused by the HTTP API) | --- |
+| `SMTP_PASS` | Elastic Email API key (required for email sending) | --- |
 | `FROM_EMAIL` | Sender email address | `billing@kron.dev` |
 | `FROM_NAME` | Sender display name | `Kron Billing` |
 
-The server does not crash if SMTP is not configured. It will log a warning and continue, and you can still test the portal, PDF download, and email preview locally. The simulation script generates realistic data without needing a real billing provider.
+The server does not crash if email sending is not configured. It will log a warning and continue, and the portal, PDF download, and email preview can still be tested locally. The simulation script generates realistic data without needing a real billing provider.
 
 ### Running the Project
 
@@ -165,13 +163,13 @@ The frontend starts on `http://localhost:5173`. Vite proxies `/api`, `/invoice`,
 
 ### Using the Simulation Script
 
-If you want to test with different data or trigger a fresh invoice:
+To test with different data or trigger a fresh invoice:
 
 ```bash
 node scripts/simulate-webhook.mjs
 ```
 
-This sends a realistic invoice payload to `http://localhost:3001/webhook/invoice`. You can optionally pass a different server URL and customer email:
+This sends a realistic invoice payload to `http://localhost:3001/webhook/invoice`. Pass a different server URL and customer email as optional arguments:
 
 ```bash
 node scripts/simulate-webhook.mjs http://localhost:3001 customer@example.com
@@ -235,7 +233,7 @@ Process an incoming invoice payload. This is the main entry point for the billin
 ```json
 {
   "invoiceId": "550e8400-e29b-41d4-a716-446655440001",
-  "portalUrl": "http://localhost:5173/portal/550e8400-e29b-41d4-a716-446655440001",
+  "portalUrl": "https://kron-three.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001",
   "pdfUrl": "/invoice/550e8400-e29b-41d4-a716-446655440001/pdf"
 }
 ```
@@ -382,7 +380,7 @@ The test suite covers:
 - **Invoice service** -- Processing webhook payloads, retrieving portal data, sending emails, generating PDFs
 - **Usage aggregation** -- Grouping call records by date, calculating average and p95 latency
 - **Invoice repository** -- CRUD operations for stored invoices
-- **Email service** -- SMTP transport configuration and email sending
+- **Email service** -- Elastic Email API payload shape and error handling
 - **Webhook e2e** -- Full integration test of the webhook endpoint
 
 ---
@@ -391,9 +389,9 @@ The test suite covers:
 
 **In-memory storage**: Kron uses an in-memory store by design. This keeps the project simple to set up and run without needing any external services (databases, Redis, etc.). Data is lost when the server stops, which is fine for demos and development. For production use, the `InvoiceRepository` and `MemoryStore` can be swapped out for a database-backed implementation that implements the same `IRepository` interface.
 
-**Unlayer Elements for both email and PDF**: The same React component structure is used for both email and PDF rendering. For emails, Elements provides the `Email` and `Html` components that wrap templates with email-client-safe markup. For PDFs, raw HTML is passed directly to Puppeteer to avoid layout quirks from the Elements `Document` component. This means you can share design patterns across formats while still getting the best rendering engine for each output.
+**Unlayer Elements for both email and PDF**: The same React component structure is used for both email and PDF rendering. For emails, Elements provides the `Email` and `Html` components that wrap templates with email-client-safe markup. For PDFs, raw HTML is passed directly to Puppeteer to avoid layout quirks from the Elements `Document` component. This means design patterns can be shared across formats while still getting the best rendering engine for each output.
 
-**No external dependencies for demo**: The server comes with built-in demo data that seeds on startup. The landing page and portal work without any configuration. You only need SMTP credentials if you want to actually send emails.
+**No external dependencies for demo**: The server comes with built-in demo data that seeds on startup. The landing page and portal work without any configuration. Only an Elastic Email API key is needed to actually send emails.
 
 ---
 
@@ -422,25 +420,25 @@ The server deploys with a **Dockerfile** (`server/Dockerfile`), not Nixpacks. Th
 
 | Variable | Description |
 | :--- | :--- |
-| `FRONTEND_URL` | Your Vercel deployment URL (e.g. `https://kron-web.vercel.app`) |
-| `SMTP_HOST` | Your SMTP server hostname |
-| `SMTP_PORT` | Your SMTP server port |
-| `SMTP_ENCRYPTION` | `ssl` or `starttls` |
-| `SMTP_USER` | SMTP username |
-| `SMTP_PASS` | SMTP password |
+| `FRONTEND_URL` | Your Vercel deployment URL (e.g. `https://kron-three.vercel.app`) |
+| `SMTP_PASS` | Your Elastic Email API key (required for email sending) |
+| `SMTP_HOST` | SMTP server hostname (legacy, unused by the HTTP API) |
+| `SMTP_PORT` | SMTP server port (legacy, unused by the HTTP API) |
+| `SMTP_ENCRYPTION` | Encryption method (legacy, unused by the HTTP API) |
+| `SMTP_USER` | SMTP username (legacy, unused by the HTTP API) |
 | `FROM_EMAIL` | Sender email address |
 | `FROM_NAME` | Sender display name |
 
-7. Once deployed, copy your Railway URL (e.g. `https://kron-server.up.railway.app`).
+7. Once deployed, copy your Railway URL (e.g. `https://kron-production-2936.up.railway.app`).
 
 **Verify the server:**
 
 ```bash
-curl https://kron-server.up.railway.app/health
+curl https://kron-production-2936.up.railway.app/health
 # -> {"status":"ok"}
 ```
 
-> SMTP is optional. If `SMTP_USER` and `SMTP_PASS` are left unset, the server boots fine, email sending returns a friendly error, and the portal, PDF, and email preview endpoints still work.
+> Email sending is optional. If `SMTP_PASS` (the Elastic Email API key) is left unset, the server boots fine, email sending returns a friendly error, and the portal, PDF, and email preview endpoints still work.
 
 > Chrome for Testing is installed during the Docker build into Puppeteer's cache, so `PUPPETEER_SKIP_DOWNLOAD` and `PUPPETEER_EXECUTABLE_PATH` are **not** needed. Do not set them; they would point at a browser that does not exist in this image.
 
@@ -459,22 +457,22 @@ curl https://kron-server.up.railway.app/health
 3. Set the **Root Directory** to `web`.
 4. Set the **Build Command** to `npm run build`.
 5. Set the **Output Directory** to `dist`.
-6. Open `web/vercel.json` and replace `RAILWAY_URL` with your Railway deployment domain (e.g. `kron-server.up.railway.app`):
+6. Open `web/vercel.json` and replace `RAILWAY_URL` with your Railway deployment domain (e.g. `kron-production-2936.up.railway.app`):
 
    ```json
    {
      "rewrites": [
        {
          "source": "/api/(.*)",
-         "destination": "https://kron-server.up.railway.app/api/$1"
+         "destination": "https://kron-production-2936.up.railway.app/api/$1"
        },
        {
          "source": "/invoice/(.*)",
-         "destination": "https://kron-server.up.railway.app/invoice/$1"
+         "destination": "https://kron-production-2936.up.railway.app/invoice/$1"
        },
        {
          "source": "/email/(.*)",
-         "destination": "https://kron-server.up.railway.app/email/$1"
+         "destination": "https://kron-production-2936.up.railway.app/email/$1"
        },
        {
          "source": "/(.*)",
@@ -489,10 +487,10 @@ curl https://kron-server.up.railway.app/health
 
 **Verify the full stack:**
 
-1. Your frontend is live at `https://your-project.vercel.app`.
-2. The demo invoice is seeded automatically when the Railway server starts, so open `https://your-project.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001` to see the portal with data.
+1. The frontend is live at `https://kron-three.vercel.app`.
+2. The demo invoice is seeded automatically when the Railway server starts, so open `https://kron-three.vercel.app/portal/550e8400-e29b-41d4-a716-446655440001` to see the portal with data.
 3. API calls from the browser hit Vercel, which forwards them to Railway seamlessly.
-4. Test the webhook end to end by POSTing the payload from the API reference above to `https://kron-server.up.railway.app/webhook/invoice` (or run `node scripts/simulate-webhook.mjs https://kron-server.up.railway.app`).
+4. Test the webhook end to end by POSTing the payload from the API reference above to `https://kron-production-2936.up.railway.app/webhook/invoice` (or run `node scripts/simulate-webhook.mjs https://kron-production-2936.up.railway.app`).
 
 ---
 
